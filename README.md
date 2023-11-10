@@ -1,2 +1,1 @@
-# CLAIA
-Command Line AI Assistant
+# COMMAND LINE AI Assistant CLAIA 
