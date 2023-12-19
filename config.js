@@ -1,6 +1,8 @@
-require("dotenv").config();
+// config.js
+require('dotenv').config();
 
-const config = {
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+const openaiApiKey = process.env.OPENAI_API_KEY;
+
+module.exports = {
+    openaiApiKey
 };
-module.exports = { config };
