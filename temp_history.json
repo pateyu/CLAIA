@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "question": "command to git add directory",
+    "answer": "git add directory"
+  },
+  {
+    "question": "command to git add my working direcory",
+    "answer": "git add ."
+  }
+]

@@ -98,8 +98,8 @@ program.command('clear')
     fs.writeFileSync(tempHistoryFilePath, JSON.stringify([]));
     console.log("History has been cleared.");
   });
-  
-program.command('help', { isDefault: true, hidden: true })
+
+program.command('help')
   .description('Display help information.')
   .action(() => {
     program.help();
