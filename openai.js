@@ -1,6 +1,10 @@
 
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 const { openaiApiKey } = require('./config');
+
+const tempHistoryFilePath = path.join(__dirname, 'temp_history.json');
 
 async function fetchResponseFromOpenAI(prompt) {
     const headers = {
@@ -8,7 +12,18 @@ async function fetchResponseFromOpenAI(prompt) {
         'Authorization': `Bearer ${openaiApiKey}`
     };
 
-    const messages = [{ role: 'assistant', content: prompt }];
+    
+    let history = [];
+    if (fs.existsSync(tempHistoryFilePath)) {
+        history = JSON.parse(fs.readFileSync(tempHistoryFilePath, 'utf8'));
+    }
+
+    const messages = history.map(item => {
+        return [{ role: 'user', content: item.question }, 
+                { role: 'assistant', content: item.answer }];
+    }).flat();
+
+    messages.push({ role: 'user', content: prompt });
 
     try {
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
@@ -17,11 +32,21 @@ async function fetchResponseFromOpenAI(prompt) {
             max_tokens: 150
         }, { headers: headers });
 
-        return response.data.choices[0].message.content.trim();
+        const aiResponse = response.data.choices[0].message.content.trim();
+        saveToTempHistory(prompt, aiResponse); 
+        return aiResponse;
     } catch (error) {
         console.error('Error:', error.response ? error.response.data : error.message);
     }
 }
 
-module.exports = fetchResponseFromOpenAI;
+function saveToTempHistory(question, answer) {
+    let history = [];
+    if (fs.existsSync(tempHistoryFilePath)) {
+        history = JSON.parse(fs.readFileSync(tempHistoryFilePath, 'utf8'));
+    }
+    history.push({ question, answer });
+    fs.writeFileSync(tempHistoryFilePath, JSON.stringify(history, null, 2));
+}
 
+module.exports = fetchResponseFromOpenAI;
