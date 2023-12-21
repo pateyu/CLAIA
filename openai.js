@@ -46,7 +46,7 @@ async function fetchCommandFromOpenAI(prompt) {
 
     const messages = [{
         role: 'system',
-        content: `Only generate a shell command to: ${prompt}, do not say annything that is a not a shell command. If no shell command exists say "Error"`
+        content: `Only generate a shell command to: ${prompt}, do not say anything that is not a shell command. If no shell command exists say "Error"`
     }];
 
     try {
@@ -56,16 +56,14 @@ async function fetchCommandFromOpenAI(prompt) {
             max_tokens: 50 
         }, { headers: headers });
 
-        const aiResponse= response.data.choices[0].message.content.trim();
+        const aiResponse = response.data.choices[0].message.content.trim();
         console.log("OpenAI Response:", aiResponse);
+        saveToTempHistory(prompt, aiResponse);
         return aiResponse;
     } catch (error) {
         console.error('Error:', error.response ? error.response.data : error.message);
     }
-
 }
-
-module.exports = { fetchResponseFromOpenAI, fetchCommandFromOpenAI };
 
 function saveToTempHistory(question, answer) {
     let history = [];

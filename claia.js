@@ -5,7 +5,7 @@ const { exec } = require('child_process');
 const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
-
+ 
 const tempHistoryFilePath = path.join(__dirname, 'temp_history.json');
 
 function initializeHistoryFile() {
@@ -29,12 +29,20 @@ program
     console.log(text);
   });
 
-program.command('execute <command...>')
+
+  program.command('execute <command...>')
   .description('Execute a shell command suggested by OpenAI')
+  .alias("ex")
   .action(async (commandParts) => {
     const commandPrompt = commandParts.join(' ');
     console.log("Fetching command suggestion...");
     const suggestedCommand = await fetchCommandFromOpenAI(commandPrompt);
+    
+    if (suggestedCommand.trim().toLowerCase() === 'error') {
+      console.log("No valid command was suggested.");
+      return;
+    }
+
     console.log(`Suggested Command: ${suggestedCommand}`);
   
     const rl = readline.createInterface({
@@ -54,7 +62,12 @@ program.command('execute <command...>')
             console.error(`Stderr: ${stderr}`);
             return;
           }
-          console.log(`Stdout: ${stdout}`);
+          if (stdout) {
+            console.log(`Stdout: ${stdout}`);
+          } else {
+            console.log("Stdout: None");
+          }
+          console.log("Successfully executed");
         });
       } else {
         console.log('Command execution cancelled.');
@@ -65,6 +78,7 @@ program.command('execute <command...>')
 
 program.command('history')
   .description('View the history of questions and answers')
+  .alias("h")
   .action(() => {
     if (fs.existsSync(tempHistoryFilePath)) {
       const history = JSON.parse(fs.readFileSync(tempHistoryFilePath, 'utf8'));
@@ -79,9 +93,16 @@ program.command('history')
 
 program.command('clear')
   .description('Clear the history of questions and answers')
+  .alias("clr")
   .action(() => {
     fs.writeFileSync(tempHistoryFilePath, JSON.stringify([]));
     console.log("History has been cleared.");
+  });
+  
+program.command('help', { isDefault: true, hidden: true })
+  .description('Display help information.')
+  .action(() => {
+    program.help();
   });
 
 program.parse(process.argv);
