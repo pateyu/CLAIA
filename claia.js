@@ -9,7 +9,8 @@ program
   .arguments("<prompt>")
   .action(async (prompt) => {
     const response = await fetchResponseFromOpenAI(prompt);
-    console.log(response);
+    const text = response.trim();
+    console.log(text);
   });
 
 program.parse(process.argv);

@@ -1,4 +1,4 @@
-// openai.js
+
 const axios = require('axios');
 const { openaiApiKey } = require('./config');
 
@@ -8,7 +8,7 @@ async function fetchResponseFromOpenAI(prompt) {
         'Authorization': `Bearer ${openaiApiKey}`
     };
 
-    const messages = [{ role: 'user', content: prompt }];
+    const messages = [{ role: 'assistant', content: prompt }];
 
     try {
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
