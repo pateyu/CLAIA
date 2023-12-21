@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
@@ -12,7 +11,6 @@ async function fetchResponseFromOpenAI(prompt) {
         'Authorization': `Bearer ${openaiApiKey}`
     };
 
-    
     let history = [];
     if (fs.existsSync(tempHistoryFilePath)) {
         history = JSON.parse(fs.readFileSync(tempHistoryFilePath, 'utf8'));
@@ -40,6 +38,35 @@ async function fetchResponseFromOpenAI(prompt) {
     }
 }
 
+async function fetchCommandFromOpenAI(prompt) {
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openaiApiKey}`
+    };
+
+    const messages = [{
+        role: 'system',
+        content: `Only generate a shell command to: ${prompt}, do not say annything that is a not a shell command. If no shell command exists say "Error"`
+    }];
+
+    try {
+        const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+            model: "gpt-3.5-turbo",
+            messages: messages,
+            max_tokens: 50 
+        }, { headers: headers });
+
+        const aiResponse= response.data.choices[0].message.content.trim();
+        console.log("OpenAI Response:", aiResponse);
+        return aiResponse;
+    } catch (error) {
+        console.error('Error:', error.response ? error.response.data : error.message);
+    }
+
+}
+
+module.exports = { fetchResponseFromOpenAI, fetchCommandFromOpenAI };
+
 function saveToTempHistory(question, answer) {
     let history = [];
     if (fs.existsSync(tempHistoryFilePath)) {
@@ -49,4 +76,4 @@ function saveToTempHistory(question, answer) {
     fs.writeFileSync(tempHistoryFilePath, JSON.stringify(history, null, 2));
 }
 
-module.exports = fetchResponseFromOpenAI;
+module.exports = { fetchResponseFromOpenAI, fetchCommandFromOpenAI };
