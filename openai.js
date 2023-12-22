@@ -57,7 +57,6 @@ async function fetchCommandFromOpenAI(prompt) {
         }, { headers: headers });
 
         const aiResponse = response.data.choices[0].message.content.trim();
-        console.log("OpenAI Response:", aiResponse);
         saveToTempHistory(prompt, aiResponse);
         return aiResponse;
     } catch (error) {
