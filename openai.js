@@ -64,6 +64,70 @@ async function fetchCommandFromOpenAI(prompt) {
     }
 }
 
+async function fetchResponseForFileOperations(userCommand, inputFile, outputFile) {
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openaiApiKey}`
+    };
+
+    let prompt = userCommand;
+    let fileContent = "";
+    let maxTokens = outputFile ? 250 : 150;  
+    if (inputFile) {
+        fileContent = fs.readFileSync(inputFile, 'utf8');
+        prompt += "\nFile Content: " + fileContent;
+    }
+
+    let systemMessage = `Perform task: ${userCommand}.`;
+    if (inputFile) {
+        systemMessage += ` Read from file: ${inputFile}. Some tasks that involve reading a file can be tasks such as summarizing stories/pages in short sentences, or understanding the requirements of a complex project.`;
+    }
+    if (outputFile) {
+        systemMessage += ` Output to file: ${outputFile}. Outputting a task can be used to write code or creating notes.The response will be directly outputted into a file. For code, all non-code comments should be commented.`;
+    }
+
+    try {
+        const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+            model: "gpt-3.5-turbo",
+            messages: [{
+                role: 'system',
+                content: systemMessage
+            }, {
+                role: 'user',
+                content: prompt
+            }],
+            max_tokens: maxTokens
+        }, { headers: headers });
+
+        let aiResponse = response.data.choices[0].message.content.trim();
+
+        if (outputFile) {
+            fs.writeFileSync(outputFile, aiResponse, { flag: 'w' });
+        }
+
+        let historyResponse;
+        if (inputFile && !outputFile) {
+            historyResponse = "File read.\n" + aiResponse;  
+        } else if (inputFile && outputFile) {
+            historyResponse = "File read and file outputted.";
+        } else if (outputFile) {
+            historyResponse = "File outputted.";
+        } else {
+            historyResponse = aiResponse;
+        }
+
+        saveToTempHistory(userCommand, historyResponse);
+        return historyResponse;
+
+    } catch (error) {
+        console.error('Error:', error.response ? error.response.data : error.message);
+        return "Error occurred during file operation.";
+    }
+}
+
+
+
+
 function saveToTempHistory(question, answer) {
     let history = [];
     if (fs.existsSync(tempHistoryFilePath)) {
@@ -73,4 +137,4 @@ function saveToTempHistory(question, answer) {
     fs.writeFileSync(tempHistoryFilePath, JSON.stringify(history, null, 2));
 }
 
-module.exports = { fetchResponseFromOpenAI, fetchCommandFromOpenAI };
+module.exports = { fetchResponseFromOpenAI, fetchCommandFromOpenAI, fetchResponseForFileOperations };
