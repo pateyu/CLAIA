@@ -2,6 +2,8 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const { openaiApiKey } = require('./config');
+const os = require('os');
+const platform = os.platform();
 
 const tempHistoryFilePath = path.join(__dirname, 'temp_history.json');
 
@@ -46,7 +48,7 @@ async function fetchCommandFromOpenAI(prompt) {
 
     const messages = [{
         role: 'system',
-        content: `Only generate a shell command to: ${prompt}, do not say anything that is not a shell command. If no shell command exists say "Error"`
+        content: `Only generate a shell command to: ${prompt} for this ${platform}, do not say anything that is not a shell command. If no shell command exists say "Error"`
     }];
 
     try {
