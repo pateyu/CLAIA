@@ -11,9 +11,6 @@ create an environment file and add you API key like this:
 API_KEY=
 ```
 
-```bash
-cp .env.example .env
-```
 
 To set up as a global command:
 
